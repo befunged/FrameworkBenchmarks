@@ -1,0 +1,26 @@
+{
+  "framework": "fast-cgi-c",
+  "tests": [
+    {
+      "default": {
+        "json_url": "/json",
+        "plaintext_url": "/plaintext",
+        "port": 8080,
+        "approach": "Realistic",
+        "classification": "Platform",
+        "database": "None",
+        "framework": "None",
+        "language": "C",
+        "flavor": "None",
+        "orm": "None",
+        "platform": "None",
+        "webserver": "lighttpd",
+        "os": "Linux",
+        "database_os": "Linux",
+        "display_name": "fast-cgi-c",
+        "notes": "",
+        "versus": "None"
+      }
+    }
+  ]
+}
