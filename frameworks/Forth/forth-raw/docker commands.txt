@@ -1,0 +1,5 @@
+build docker image :  docker build -t forth-raw:v1 .
+
+run docker image and shell into it : docker run -it forth-raw:v1 /bin/bash
+
+run docker image as daemon : docker run -d --name forth-raw -p 80:80 forth-raw:v1

@@ -1,0 +1,26 @@
+{
+  "framework": "forth-raw",
+  "tests": [
+    {
+      "default": {
+        "json_url": "/cgi-bin/json",
+        "plaintext_url": "/cgi-bin/plaintext",
+        "port": 80,
+        "approach": "Realistic",
+        "classification": "Platform",
+        "database": "None",
+        "framework": "None",
+        "language": "Forth",
+        "flavor": "None",
+        "orm": "None",
+        "platform": "None",
+        "webserver": "apache2",
+        "os": "Linux",
+        "database_os": "Linux",
+        "display_name": "forth-raw",
+        "notes": "",
+        "versus": "None"
+      }
+    }
+  ]
+}
