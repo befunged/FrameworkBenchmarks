@@ -1,0 +1,26 @@
+{
+  "framework": "java-nginx",
+  "tests": [
+    {
+      "default": {
+        "json_url": "/json",
+        "plaintext_url": "/plaintext",
+        "port": 8080,
+        "approach": "Realistic",
+        "classification": "Micro",
+        "database": "None",
+        "framework": "Java-Nginx",
+        "language": "Java",
+        "flavor": "None",
+        "orm": "None",
+        "platform": "Nginx",
+        "webserver": "nginx",
+        "os": "Linux",
+        "database_os": "Linux",
+        "display_name": "Java-Nginx",
+        "notes": "",
+        "versus": "None"
+      }
+    }
+  ]
+}
