@@ -2,6 +2,6 @@
 warnings off
 
 .( Content-type: text/plain) cr cr
-.( Hello, World!) cr
+.( Hello, World!)
 
 bye
