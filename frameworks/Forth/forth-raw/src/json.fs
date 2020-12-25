@@ -19,5 +19,3 @@ jos1 jos-write-end-object
 jos1 str-get type cr 
 
 bye
-
-
