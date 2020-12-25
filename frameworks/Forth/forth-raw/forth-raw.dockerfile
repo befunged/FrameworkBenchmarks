@@ -1,5 +1,5 @@
 FROM ubuntu:xenial
-RUN apt-get update && apt-get install -y --no-install-recommends gforth apache2
+RUN apt-get update && apt-get install -y --no-install-recommends gforth apache2 wget
 EXPOSE 80 443
 
 RUN mkdir /var/www/cgi-bin/
