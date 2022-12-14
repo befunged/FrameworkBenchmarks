@@ -3,3 +3,85 @@ build docker image :  docker build -t forth-raw:v1 .
 run docker image and shell into it : docker run -it forth-raw:v1 /bin/bash
 
 run docker image as daemon : docker run -d --name forth-raw -p 80:80 forth-raw:v1
+
+include ffl/dtm.fs
+
+dtm-create response-date
+
+: to-string ( n -- addr c )  s>d <# #s #> ;
+
+: date-year ( -- addr u ) 
+	response-date dtm-year@ to-string 
+;
+
+: date-month ( -- addr u ) 
+	response-date dtm-month@	
+
+	case 
+	    dtm.january of s" Jan" endof
+	    dtm.february of s" Feb" endof
+	    dtm.march of s" Mar" endof
+	    dtm.april of s" Apr" endof
+	    dtm.may of s" May" endof
+	    dtm.june of s" Jun" endof
+	    dtm.july of s" Jul" endof
+	    dtm.august of s" Aug" endof
+	    dtm.september of s" Sep" endof
+	    dtm.october of s" Oct" endof
+	    dtm.november of s" Nov" endof
+	    dtm.december of s" Dec" endof
+	endcase
+;
+
+: date-day-of-week ( -- addr u ) 
+    	response-date dtm-weekday
+	case 
+	    dtm.monday of s" Mon" endof
+	    dtm.tuesday of s" Tue" endof
+		dtm.wednesday of s" Wed" endof
+		dtm.thursday of s" Thu" endof
+		dtm.friday of s" Fri" endof
+		dtm.saturday of s" Sat" endof
+		dtm.sunday of s" Sun" endof
+	endcase
+;
+
+: date-day ( -- addr u ) 
+	response-date dtm-day@ to-string 
+;
+
+: date-hour ( -- addr u ) 
+    response-date dtm-hour@ to-string
+;
+
+: date-minute ( -- addr u ) 
+    response-date dtm-minute@ to-string
+;
+
+: date-second ( -- addr u ) 
+    response-date dtm-second@ to-string
+;
+
+
+
+response-date dtm-init                   \ update the response date to now
+s" Date: "
+date-day-of-week s+                    \ append day of week
+s" , " s+
+date-day                                \ append day
+s"  " s+
+date-month s+
+s"  " s+
+date-year s+
+s"  " s+
+date-hour s+
+s" :" s+
+date-minute s+
+s" :" s+
+date-second s+
+s"  GMT" s+
+
+
+
+	
+	
