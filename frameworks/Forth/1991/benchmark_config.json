@@ -1,0 +1,26 @@
+{
+  "framework": "1991",
+  "tests": [
+    {
+      "default": {
+        "plaintext_url": "/plaintext",
+	"json_url":"/json",
+        "port": 8080,
+        "approach": "Realistic",
+        "classification": "Platform",
+        "database": "None",
+        "framework": "1991",
+        "language": "Forth",
+        "flavor": "None",
+        "orm": "None",
+        "platform": "None",
+        "webserver": "None",
+        "os": "Linux",
+        "database_os": "Linux",
+        "display_name": "1991",
+        "notes": "",
+        "versus": "None"
+      }
+    }
+  ]
+}
