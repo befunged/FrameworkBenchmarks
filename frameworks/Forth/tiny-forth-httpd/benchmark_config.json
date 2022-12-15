@@ -1,0 +1,25 @@
+{
+  "framework": "tiny-forth-httpd",
+  "tests": [
+    {
+      "default": {
+        "plaintext_url": "/plaintext",
+        "port": 8080,
+        "approach": "Realistic",
+        "classification": "Platform",
+        "database": "None",
+        "framework": "tiny-forth-httpd",
+        "language": "Forth",
+        "flavor": "None",
+        "orm": "None",
+        "platform": "None",
+        "webserver": "None",
+        "os": "Linux",
+        "database_os": "Linux",
+        "display_name": "tiny-forth-httpd",
+        "notes": "",
+        "versus": "None"
+      }
+    }
+  ]
+}
