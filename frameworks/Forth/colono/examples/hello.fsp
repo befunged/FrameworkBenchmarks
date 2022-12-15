@@ -1,0 +1,8 @@
+<html>
+<head>
+<title>Forth Server page</title>
+<body>
+<p><%
+." Hello!"
+%>
+</html>

@@ -1,0 +1,8 @@
+<html>
+<head>
+<title>Forth Server Page</title>
+<body>
+<p><%
+S" text" request-parameter TYPE
+%>
+</html>

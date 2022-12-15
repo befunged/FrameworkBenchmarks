@@ -1,0 +1,19 @@
+Changes for Colono 0.8
+
+* FSP now supports HEAD requests. Fixed a bug in request-parameter-raw when processing HEAD requests.
+
+* Fixed FSP content size in log
+
+Changes for Colono 0.7
+
+* Added uri-path and request-parameter-raw
+
+* Handler pattern now matches agains URI path only
+
+* Implemented Forth Server Pages
+
+Changes for Colono 0.6
+
+* Added put-content-type
+
+* ClearSilver support

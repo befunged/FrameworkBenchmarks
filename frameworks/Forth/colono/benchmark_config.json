@@ -1,0 +1,25 @@
+{
+  "framework": "colono",
+  "tests": [
+    {
+      "default": {
+        "plaintext_url": "/cgi-bin/plaintext",
+        "port": 80,
+        "approach": "Realistic",
+        "classification": "Platform",
+        "database": "None",
+        "framework": "colono",
+        "language": "Forth",
+        "flavor": "None",
+        "orm": "None",
+        "platform": "None",
+        "webserver": "None",
+        "os": "Linux",
+        "database_os": "Linux",
+        "display_name": "colono",
+        "notes": "",
+        "versus": "None"
+      }
+    }
+  ]
+}

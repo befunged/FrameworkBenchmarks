@@ -1,0 +1,19 @@
+Colono
+
+Colono is a webserver written in Forth which uses an event-based I/O model.
+
+This version runs under GForth, SwiftForth, and VFX Forth on Linux and under
+SwiftForth and VFX Forth on MS Windows.
+
+See doc/colono.html for more information.
+
+Request handlers
+
+Processing HTTP requests is delegated to request handlers. A handler for GET
+which sends files is included. Handlers for e.g. POST requests can be added.
+This makes it possible to implement a REST API using Forth.
+
+An example for a POST handler can be found in examples/posttest.fs
+(posttestwin.fs on Windows). Run this file to try out POST requests.
+The HTML file form.html can be used to send a POST request which is sent back
+by the handler.

@@ -1,0 +1,56 @@
+<html>
+<head>
+<title>Colono HTTP Server Documentation - ClearSilver interface</title>
+<link rel="stylesheet" href="style.css">
+<body>
+
+<h1>ClearSilver interface</h1>
+
+<h2>Overview</h2>
+
+<p>The ClearSilver interface allows to generate HTML pages using <a href="http://www.clearsilver.net/">ClearSilver</a> templates.
+
+<p>Currently the ClearSilver interface works only on Linux with SwiftForth or VFX Forth.
+
+<p>ClearSilver doesn't come with shared libraries by default.
+The static libraries libneo_utl.a and libneo_cs.a can be converted
+to a single shared library using:
+
+<p><code>gcc -shared -o libneo_utl_cs.so -Wl,--whole-archive /usr/local/lib/libneo_utl.a
+/usr/local/lib/libneo_cs.a -/usr/local/lib/l/Wl,--no-whole-archive</code>
+
+<h2>Using ClearSilver from Forth</h2>
+
+<p>The following ClearSilver API functions are defined in cs/cs.fs:
+
+<p><code>hdf_init ( a -- a )</code>
+
+<p><code>hdf_destroy ( a -- )</code>
+<p><code>hdf_set_value ( a a a -- a )</code>
+<p><code>hdf_get_value ( a a a -- a )</code>
+<p><code>hdf_set_buf ( a a a -- a )</code>
+<p><code>hdf_dump ( a a -- a )</code>
+
+<p><code>cs_init ( a a -- a )</code>
+<p><code>cs_destroy ( a -- )</code>
+<p><code>cs_parse_string ( a a n -- a )</code>
+<p><code>cs_parse_file ( a a -- a )</code>
+<p><code>cs_render ( a a func -- a )</code>
+
+<p>To fill a dataset from HTTP form data, call <strong>request&gt;hdf</strong>:
+
+<dl>
+<dt>request>hdf ( conn-addr hdf -- )
+<dd><p>Read HTTP form data and store it in the dataset <var>hdf</var>.
+Both GET and POST are supported.
+</dl>
+
+<p>To render a template from a request handler, call <strong>render-response</strong>:
+
+<dl>
+<dt><code>render-response ( conn-addr hdf c-addr u -- )</code>
+<dd><p>Render the template stored in the file given by <var>c-addr</var>/<var>u</var> using the dataset <var>hdf</var>
+and store the result in a buffer that will be written to the connection <var>conn-addr</var>.
+</dl>
+
+<p>An example start script which includes a handler generating output using ClearSilver is located at <em>examples/csdemo.fs</em>.

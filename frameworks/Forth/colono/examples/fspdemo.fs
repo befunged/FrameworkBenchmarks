@@ -1,0 +1,25 @@
+\
+\ Example for processing a request generating a response page using Forth Server Pages
+\
+\ Copyright (c) 2017 Rene Hartmann.
+\ See the file LICENSE for redistribution information.
+\
+
+\ On Windows, replace FALSE by TRUE
+FALSE CONSTANT windows?
+
+[UNDEFINED] required [IF]
+S" ../httpd/compat/required.fs" INCLUDED
+[THEN]
+
+require ../httpd/server.fs
+require ../httpd/file.fs
+require ../fsp/fsp.fs
+
+S" /etc/mime.types" read-mime-types
+
+' handle-GET-file S" *" add-handler
+
+' handle-fsp S" *.fsp" add-handler
+
+httpserve

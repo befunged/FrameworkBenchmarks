@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>Forth Server Pages</title>
+<link rel="stylesheet" href="style.css">
+<body>
+
+<h1>Forth Server Pages</h1>
+
+<h2>Syntax</h2>
+
+<p>A Forth Server Pages (FSP) page is a HTML page in which Forth code has been embedded using <strong><code>&lt;% ... %&gt;</code></strong>.
+
+<p>Example:
+
+<pre>
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Forth Server page&lt;/title&gt;
+&lt;body&gt;
+&lt;p&gt;&lt;%
+." Hello!"
+%&gt;
+&lt;/html&gt;
+</pre>
+
+<p>When an FSP page is processed, the following words are redefined
+so that their output appears in the generated page:
+
+<ul>
+<li><strong>."</strong>
+<li><strong>TYPE</strong>
+<li><strong>EMIT</strong>
+<li><strong>SPACE</strong>
+<li><strong>.</strong>
+<li><strong>U.</strong>
+<li><strong>D.</strong>
+</ul>
+
+<p><strong><code>%&gt;</code></strong> is implemented as a Forth word and therefore must be surrounded by whitespace.
+
+<h2>Configuration</h2>
+
+<p>To enable FSP, the handler <strong><code>handle-fsp</code></strong> must be installed by the startup script:
+
+<pre>
+require ../fsp/fsp.fs
+
+' handle-fsp S" *.fsp" add-handler
+</pre>
+
+<p>An example startup script for FSP is located at <em>examples/fspdemo.fs</em>
+(On Windows: <em>examples/fspdemowin.fs</em>).
+
+</html>

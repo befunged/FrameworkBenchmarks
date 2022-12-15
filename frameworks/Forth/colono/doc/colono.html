@@ -1,0 +1,247 @@
+<html>
+<head>
+<title>Colono HTTP Server Documentation</title>
+<link rel="stylesheet" href="style.css">
+<body>
+
+<h1>Colono HTTP Server Documentation</h1>
+
+<h2>Starting Colono</h2>
+
+<p>To start the server, go run the file <em>colono.fs</em> (on Linux) or <em>colonowin.fs</em> (on Windows) in the <em>httpd</em> directory using the Forth of your choice (GForth, SwiftForth, or VFX Forth). GForth is only supported on Linux.
+
+<p>For example, if you use GForth you can type:
+
+<p><kbd>gforth httpd/colono.fs</kbd>
+
+<p>If <em>gforth</em> is located in <em>/usr/bin</em>, you can make <em>colono.fs</em> executable and run it directly.
+
+<p>With SwiftForth and VFX Forth, you need to make <em>httpd</em> the current directory and run <em>colono.fs</em> (<em>colonowin.fs</em> on Windows) from there
+(using a command line argument or by typing <kbd>include colono.fs</kbd> or <kbd>include colonowin.fs</kbd>).
+
+<p>To stop the server, stop the process.
+
+<h2>Configuration</h2>
+
+<p>The configuration can be found in colono.fs (Linux) or colonowin.fs (Windows). You can modify the respective file to change the configuration parameters.
+
+<p>The following words are used to configure the webserver:
+
+<dl>
+
+<dt><code>read-mime-types ( c-addr u -- )</code>
+
+<dd><p>Read the mime types from the file given by c-addr/u.
+Under Windows, the MIME types are read from the registry.
+
+<dt><code>Listen-Address&amp;Port ( "[host:]port" -- )</code>
+
+<dd><p>Specifies the port, and optionally the host on which Colono accepts HTTP connections.
+The default port is 4004.
+
+<dt><code>request-read-timeout ( -- u )</code>
+
+<dd><p>A VALUE containing the request read timeout, that is, the number of seconds the server
+waits for a request from the client.
+
+<dt><code>keep-alive-timeout ( -- u )</code>
+
+<dd><p>A VALUE containing the keep-alive timeout, that is, the number of seconds the server
+waits for subsequent requests. A value of 0 disables persistent connections.
+
+<dt><code>DocumentRoot ( "path" -- )</code>
+
+<dd><p>Specifies the document root path. Default is the current directory.
+
+<dt><code>response-buf-capacity ( -- u )</code>
+
+<dd><p>A VALUE which holds the capacity of the response buffer. The default value is 16K.
+
+<dt><code>AccessLog ( "file" -- )</code>
+
+<dd><p>Write the access log to file "file". Default is no access log.
+
+</dl>
+
+<h2>Request handlers</h2>
+
+<p>Colono invokes request handlers to handle HTTP requests.
+
+<p>A handler is installed using <strong>add-handler</strong>:
+
+<p><code>add-handler ( xt c-addr u -- )</code>
+
+<p>Install the execution token xt as the handler for the URL path given by c-addr and u.
+
+<p>The path may contain one or zero wildcards ("*").
+
+<p>When a HTTP request is ready to be processed, the handler is invoked with the address of a connection structure on the stack.
+
+<p>The handler then must fill write the response data to the response buffer before returning.
+
+<p>Unlike the request buffer which grows as needed (but only to a maximum which currently is 1MB) the response buffer
+does not grow automatically (currently the size is 16K).
+
+<p>The file transfer handler <strong>handle-GET-file</strong> uses the scheme described below to write the content of a file as a response to a GET request:
+
+<p>If there is more response data than fits in the response buffer, the handler writes some data and re-installs a handler before returning.
+When the response buffer has been written completely to the client, this handler is invoked.
+If the remaining data fits in the buffer, the handler simply writes the data into the response buffer and returns.
+Otherwise, it again writes some data into the buffer and re-installs itself so that it is invoked again when the data has been written to the client.
+This repeats until all data is written.
+
+<p>It is possible to provide handlers for request methods other than GET. The file examples/posttest.fs contains an example of a handler for POST requests.
+
+<h3>Words for use by request handlers</h3>
+
+<dl>
+
+<dt><code>request-data ( conn-addr -- addr u )</code>
+
+<dd><p>Return the current HTTP request. conn-addr is the address of the connections structure which was passed to the handler.
+
+<dt><code>request-method ( conn-addr -- c-addr u )</code>
+
+<dd><p>Return the request method.
+
+<dt><code>request-uri ( conn-addr -- c-addr u )</code>
+
+<dd><p>Return the request URI.
+
+<dt><code>request-headers ( conn-addr -- c-addr u )</code>
+
+<dd><p>Return the request headers, including the Request-Line.
+
+<dt><code>request-line ( conn-addr -- c-addr u )</code>
+
+<dd><p>Return the Request-Line.
+
+<dt><code>request-header ( conn-addr c-addr1 u1 -- c-addr2 u2 TRUE | FALSE )</code>
+
+<dd><p>Search for the header name given by c-addr1 and u1.
+If it is found, return the header value and TRUE.
+Otherwise, return FALSE.
+
+<dt><code>status-not-found ( -- status )</code>
+
+<dd><p>Returns 404 (HTTP Not found)
+
+<dt><code>status-method-not-allowed ( -- status )</code>
+
+<dd><p>Returns 405 (HTTP Method Not Allowed)
+
+<p>See httpd/status.fs for a list of HTTP return codes.
+
+<dt><code>put-error ( status conn-addr -- )</code>
+
+<dd><p>Write a complete error response to the response buffer.
+Use of put-error is incompatible with other words that write to the response buffer.
+
+<dt><code>put-status-code ( status conn-addr -- )</code>
+
+<dd><p>Write a numeric status code to the response buffer.
+
+<dt><code>put-status-code-body ( status conn-addr -- )</code>
+
+<dd><p>Write a numeric status code to the response buffer and increment the object size count.
+
+<dt><code>put-status ( status conn-addr -- )</code>
+
+<dd><p>Write a status line to the output buffer.
+The status line must be written before headers and the response body.
+
+<dt><code>put-date ( conn-addr -- )</code>
+
+<dd><p>Write a HTTP Date header with the current date to the response buffer.
+
+<dt><code>put-server ( conn-addr -- )</code>
+
+<dd><p>Write a HTTP Server header with the server name and version to the response buffer.
+
+<dt><code>put-connection-close ( conn-addr -- )</code>
+
+<dd><p>Write a "Connection: close" header to the response buffer.
+
+<dt><code>put-response ( c-addr u conn-addr -- )</code>
+
+<dd><p>Write data given by c-addr and u to the response buffer.
+
+<dt><code>put-response-body ( c-addr u conn-addr -- )</code>
+
+<dd><p>Write data given by c-addr and u to the respons buffer and
+increment the object size count. This word should be used when
+writing the response body in order to get a correct size in the access log.
+
+<dt><code>&gt;'provide-response ( conn-addr -- a-addr )</code>
+
+<dd><p>Return the location at which the xt of the request handler is stored.
+
+<dt><code>response-buf-full? ( conn-addr -- flag )</code>
+
+<dd><p>Return FALSE if there is any space left in the response buffer.<br>
+Return TRUE if the response buffer is full.
+
+<dt><code>&gt;response-handler-area ( conn-addr -- a-addr )</code>
+
+<dd><p>Return the address of an area which may freely be used by the response handler.
+The area is 8 cells large.
+
+<dt><code>response-buf-space ( conn-addr -- c-addr u )</code>
+
+<dd><p>Return address and length of the space in the response buffer that is still available.
+
+<dt><code>: &gt;'cleanup ( conn-addr -- a-addr )</code>
+
+<dd><p>Return the address of an execution token which is called on connection close with a connection address on the stack.
+Default is DROP. After it was called, the default is restored.
+
+<dt><code>: &gt;object-size ( conn-addr -- a-addr )</code>
+
+<dd><p>Return the address of the object size count which is incremented by
+<code>put-response-body</code>.
+
+<dt><code>uri-path ( c-addr1 u1 -- c-addr2 u2 )</code>
+
+<dd><p>Get the URI path from the request data in URL-unencoded form.
+Throw uri-path-too-long (see below) if the URI path does not fit in the buffer used for decoding.
+
+<dt><code>request-parameter-raw ( c-addr1 u1 conn-addr -- FALSE | c-addr2 u2 TRUE )</code>
+
+<dd><p>Search the request data for the parameter specified by c-addr1/u1.
+Return address and count and TRUE if found, otherwise return FALSE.
+No URL unencoding will be performed on the data.
+
+<dt><code>urldecode ( c-addr1 u1 c-addr2 -- u2 )</code>
+
+<dd><p>Perform URL decoding on the data specified by c-addr1/u1, replacing all
+occurrences of %DD by the corresponding byte. Return the length of the result string, in bytes.
+
+</dl>
+
+<h2>Error codes</h2>
+
+<p>If the server encounters an unrecoverable condition, an exception will be thrown.
+
+<p>Colono defines the following THROW codes:
+
+<table>
+<tr><th>Value<th>Constant<th>Description
+<tr><td>3300<td>buffer-full<td>The maximum buffer size was exceeded
+<tr><td>3301<td>getaddrinfo-failed<td>getaddrinfo() failed
+<tr><td>3302<td>bind-failed<td>bind() failed
+<tr><td>3303<td>setsockopt-failed<td>setsockopt() failed
+<tr><td>3304<td>listen-failed<td>listen() failed()
+<tr><td>3305<td>socket-failed<td>socket() failed
+<tr><td>3306<td>poll-failed<td>poll() failed
+<tr><td>3307<td>fcntl-failed<td>fnctl() or ioctlsocket() failed
+<tr><td>3308<td>sockets-unavailable<td>WSAStartup() failed (Windows only)
+<tr><td>3309<td>malloc-failed<td>malloc() failed
+<tr><td>3400<td>mime-table-full<td>The maximum size of the MIME type table was exceeded
+<tr><td>3410<td>uri-path-too-long<td>The URI path does not fit in the buffer
+</table>
+
+<h2>Template engines</h2>
+
+<p>Colono contains support for two kinds of templates: <a href="clearsilver.html">ClearSilver</a> and <a href="fsp.html">Forth Server Pages</a>.
+
+</html>
