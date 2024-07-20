@@ -10,8 +10,8 @@ from toolset.utils.benchmark_config import BenchmarkConfig
 from toolset.utils.output_helper import log
 
 # Enable cross-platform colored output
-from colorama import init, Fore
-init()
+from colorama import Fore, just_fix_windows_console
+just_fix_windows_console()
 
 
 class StoreSeqAction(argparse.Action):
@@ -67,6 +67,11 @@ def main(argv=None):
         ''')
 
     # Suite options
+    # CPU set  options
+    parser.add_argument(
+        '--cpuset-cpus',
+        default=None,
+        help='The cpu set to run framework container on')
     parser.add_argument(
         '--audit',
         action='store_true',
@@ -83,6 +88,13 @@ def main(argv=None):
         default=False,
         help=
         'Only print a limited set of messages to stdout, keep the bulk of messages in log files only'
+    )
+    parser.add_argument(
+        '--reverse-order',
+        action='store_true',
+        default=False,
+        help=
+        'Run the tests in reverse order, starting with the last test in the list'
     )
     parser.add_argument(
         '--results-name',
@@ -187,6 +199,15 @@ def main(argv=None):
         nargs='+',
         default=[1, 10, 20, 50, 100],
         help='List of cached query levels to benchmark')
+    parser.add_argument(
+        '--test-container-memory',
+        default=None,
+        help='Amount of memory to be given to the test container')
+    parser.add_argument(
+        '--extra-docker-runtime-args',
+        nargs='*',
+        default=None,
+        help='Extra docker arguments to be passed to the test container')
 
     # Network options
     parser.add_argument(

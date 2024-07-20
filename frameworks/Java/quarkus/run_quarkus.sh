@@ -10,6 +10,7 @@
 # Consider using -Dquarkus.http.io-threads=$((`grep --count ^processor /proc/cpuinfo`)) \
 
 JAVA_OPTIONS="-server \
+  -Dquarkus.http.limits.max-body-size= \
   -Dquarkus.vertx.prefer-native-transport=true  \
   -XX:-StackTraceInThrowable \
   -Dquarkus.http.accept-backlog=-1 \
@@ -17,8 +18,6 @@ JAVA_OPTIONS="-server \
   -Dio.netty.buffer.checkAccessible=false \
   -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
   -Dquarkus.http.idle-timeout=0 \
-  -XX:-UseBiasedLocking \
-  -XX:+UseStringDeduplication \
   -XX:+UseNUMA \
   -XX:+UseParallelGC \
   -Djava.lang.Integer.IntegerCache.high=10000 \

@@ -29,7 +29,8 @@ class Benchmarker:
 
         # a list of all tests for this run
         self.tests = self.metadata.tests_to_run()
-
+        if self.config.reverse_order:
+            self.tests.reverse()
         self.results = Results(self)
         self.docker_helper = DockerHelper(self)
 
@@ -307,11 +308,11 @@ class Benchmarker:
         output_file = "{file_name}".format(
             file_name=self.results.get_stats_file(framework_test.name,
                                                   test_type))
-        dstat_string = "dstat -Tafilmprs --aio --fs --ipc --lock --socket --tcp \
+        dool_string = "dool -Tafilmprs --aio --fs --ipc --lock --socket --tcp \
                                       --raw --udp --unix --vm --disk-util \
                                       --rpc --rpcd --output {output_file}".format(
             output_file=output_file)
-        cmd = shlex.split(dstat_string)
+        cmd = shlex.split(dool_string)
         self.subprocess_handle = subprocess.Popen(
             cmd, stdout=FNULL, stderr=subprocess.STDOUT)
 

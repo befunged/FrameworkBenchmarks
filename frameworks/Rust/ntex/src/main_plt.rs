@@ -87,6 +87,7 @@ async fn main() -> io::Result<()> {
                 codec: h1::Codec::default(),
             })
         })?
+        .workers(num_cpus::get())
         .run()
         .await
 }

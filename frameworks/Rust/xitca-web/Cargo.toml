@@ -6,81 +6,89 @@ edition = "2021"
 [[bin]]
 name = "xitca-web"
 path = "./src/main.rs"
-required-features = ["raw", "sailfish", "simd"]
-
-[[bin]]
-name = "xitca-web-diesel"
-path = "./src/main_diesel.rs"
-required-features = ["orm", "sailfish", "serde", "web"]
+required-features = ["io-uring", "pg", "router", "template"]
 
 [[bin]]
 name = "xitca-web-iou"
 path = "./src/main_iou.rs"
-required-features = ["io-uring"]
+required-features = ["io-uring", "perf", "pg-iou", "template"]
 
 [[bin]]
 name = "xitca-web-wasm"
 path = "./src/main_wasm.rs"
 required-features = ["web"]
 
+[[bin]]
+name = "xitca-web-axum"
+path = "./src/main_axum.rs"
+required-features = ["axum", "io-uring", "perf", "pg-sync", "template"]
+
+[[bin]]
+name = "xitca-web-sync"
+path = "./src/main_sync.rs"
+required-features = ["pg-orm", "template", "web-codegen"]
+
 [features]
-# raw-pg optional
-raw = ["xitca-postgres"]
-# diesel-pg orm optional
-orm = ["diesel", "diesel-async", "tang-rs"]
-# simd-json optional
-simd = ["simd-json", "simd-json-derive"]
-# serde optional
-serde = ["dep:serde"]
+# pg optional
+pg = ["xitca-postgres/single-thread"]
+# pg send/sync optional
+pg-sync = ["xitca-postgres"]
+# pg io_uring optional
+pg-iou = ["pg", "xitca-postgres/io-uring"]
+# pg orm optional
+pg-orm = ["diesel"]
+# http router optional
+router = ["xitca-http/router"]
 # web optional
 web = ["xitca-web"]
-# templating optional
-sailfish = ["dep:sailfish"]
+# web codegen optional
+web-codegen = ["xitca-web/codegen", "xitca-web/urlencoded"]
+# template optional
+template = ["sailfish"]
 # io-uring optional
-io-uring = ["tokio-uring", "xitca-server/io-uring"]
+io-uring = ["xitca-http/io-uring", "xitca-server/io-uring"]
+# axum optional
+axum = ["dep:axum", "http-body", "tower", "tower-http", "xitca-web/tower-http-compat" ]
+# unrealistic performance optimization
+perf = ["mimalloc", "tokio/parking_lot"]
 
 [dependencies]
-xitca-http = { version = "0.1", features = ["util-service"] }
-xitca-io = "0.1"
-xitca-server = "0.1"
+xitca-http = "0.5"
+xitca-io = "0.3"
+xitca-server = "0.3"
 xitca-service = "0.1"
-xitca-unsafe-collection = "0.1"
+xitca-unsafe-collection = "0.1.1"
 
 atoi = "2"
-tracing = "0.1.37"
-tracing-subscriber = { version = "0.3.1", features = ["env-filter"] }
+serde = { version = "1" }
+serde_json = { version = "1" }
 
 # web optional
-xitca-web = { version = "0.1", features = ["json"], optional = true }
+xitca-web = { version = "0.5", features = ["json"], optional = true }
 
 # raw-pg optional
-xitca-postgres = { version = "0.1", default-features = false, features = ["single-thread"], optional = true }
+xitca-postgres = { version = "0.1", optional = true }
 
-# diesel-pg orm optional
-diesel = { version = "2.0.0", default-features = false, features = ["i-implement-a-third-party-backend-and-opt-into-breaking-changes"], optional = true }
-diesel-async = { version = "0.1.1", default-features = false, features = ["postgres"], optional = true }
-tang-rs = { version = "0.2", optional = true }
+# orm optional
+diesel = { version = "2", features = ["postgres", "r2d2"], optional = true }
 
-# simd-json optional
-simd-json = { version = "0.6", default-features = false, features = ["swar-number-parsing", "hints"], optional = true }
-simd-json-derive = { version = "0.6.3", default-features = false, optional = true }
+# template optional
+sailfish = { version = "0.8", default-features = false, features = ["derive", "perf-inline"], optional = true }
 
-# serde optional
-serde = { version = "1", features = ["derive"], optional = true }
+# axum optional
+axum = { version = "0.7", optional = true, default-features = false, features = ["json", "query"] }
+http-body = { version = "1", optional = true }
+tower = { version = "0.4", optional = true }
+tower-http = { version = "0.5", features = ["set-header"], optional = true }
 
-# io-uring optional
-tokio-uring = { version = "0.3", features = ["bytes"], optional = true }
-
-# templating optional
-sailfish = { version = "0.5.0", optional = true }
+# perf optional
+mimalloc = { version = "0.1", default-features = false, optional = true }
 
 # stuff can not be used or not needed in wasi target
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-mimalloc = { version = "0.1.29", default-features = false }
-core_affinity = "0.5.10"
-futures-util = { version = "0.3.18", default-features = false, features = ["alloc"] }
-rand = { version = "0.8.5", default-features = false, features = ["min_const_gen", "nightly", "simd_support", "small_rng"] }
-tokio = "1.21.2"
+futures-core = { version = "0.3", default-features = false }
+nanorand = { version = "0.7", default-features = false, features = ["tls"] }
+tokio = "1"
 
 [profile.release]
 lto = true
@@ -89,12 +97,4 @@ codegen-units = 1
 panic = "abort"
 
 [patch.crates-io]
-xitca-http = { git = "https://github.com/HFQR/xitca-web.git", rev = "7a2b6c37011f41fe851ad73480320b2e753c5e7c" }
-xitca-io = { git = "https://github.com/HFQR/xitca-web.git", rev = "7a2b6c37011f41fe851ad73480320b2e753c5e7c" }
-xitca-postgres = { git = "https://github.com/HFQR/xitca-web.git", rev = "7a2b6c37011f41fe851ad73480320b2e753c5e7c" }
-xitca-server = { git = "https://github.com/HFQR/xitca-web.git", rev = "7a2b6c37011f41fe851ad73480320b2e753c5e7c" }
-xitca-service = { git = "https://github.com/HFQR/xitca-web.git", rev = "7a2b6c37011f41fe851ad73480320b2e753c5e7c" }
-xitca-unsafe-collection = { git = "https://github.com/HFQR/xitca-web.git", rev = "7a2b6c37011f41fe851ad73480320b2e753c5e7c" }
-xitca-web = { git = "https://github.com/HFQR/xitca-web.git", rev = "7a2b6c37011f41fe851ad73480320b2e753c5e7c" }
-
-tokio-uring = { git = "https://github.com/tokio-rs/tokio-uring.git", rev = "8725b81b862cc480be93b1a11c80b9990d51d890" }
+xitca-postgres = { git = "https://github.com/HFQR/xitca-web.git", rev = "ea1f5a2447e0969a6dff84eac9ff9ff90dbc7ed1" }

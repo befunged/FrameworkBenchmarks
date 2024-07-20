@@ -1,48 +1,65 @@
 #include "handler.hpp"
 
-#include "../../common/db_helpers.hpp"
-
 #include <userver/components/component_context.hpp>
 #include <userver/formats/serialize/common_containers.hpp>
+#include <userver/http/common_headers.hpp>
 #include <userver/storages/postgres/postgres.hpp>
 
 #include <boost/container/small_vector.hpp>
 
 namespace userver_techempower::multiple_queries {
 
+namespace {
+
+constexpr std::size_t kBestConcurrencyWildGuess = 256;
+
+}
+
 Handler::Handler(const userver::components::ComponentConfig& config,
                  const userver::components::ComponentContext& context)
-    : userver::server::handlers::HttpHandlerJsonBase{config, context},
+    : userver::server::handlers::HttpHandlerBase{config, context},
       pg_{context
               .FindComponent<userver::components::Postgres>(
                   db_helpers::kDbComponentName)
               .GetCluster()},
-      query_arg_name_{"queries"} {}
+      query_arg_name_{"queries"},
+      semaphore_{kBestConcurrencyWildGuess} {}
 
-userver::formats::json::Value Handler::HandleRequestJsonThrow(
+std::string Handler::HandleRequestThrow(
     const userver::server::http::HttpRequest& request,
-    const userver::formats::json::Value&,
     userver::server::request::RequestContext&) const {
   const auto queries =
       db_helpers::ParseParamFromQuery(request, query_arg_name_);
 
+  request.GetHttpResponse().SetHeader(userver::http::headers::kContentType,
+                                      "application/json");
   return GetResponse(queries);
 }
 
-userver::formats::json::Value Handler::GetResponse(int queries) const {
-  boost::container::small_vector<int, 500> random_ids(queries);
-  std::generate(random_ids.begin(), random_ids.end(),
-                db_helpers::GenerateRandomId);
+std::string Handler::GetResponse(int queries) const {
+  const auto db_result = [this, queries] {
+    const auto lock = semaphore_.Acquire();
 
-  boost::container::small_vector<db_helpers::WorldTableRow, 500> result{};
-  for (auto id : random_ids) {
-    result.push_back(pg_->Execute(db_helpers::kClusterHostType,
-                                  db_helpers::kSelectRowQuery, id)
-                         .AsSingleRow<db_helpers::WorldTableRow>(
-                             userver::storages::postgres::kRowTag));
+    auto query_queue = pg_->CreateQueryQueue(db_helpers::kClusterHostType,
+                                             db_helpers::kDefaultPgCC.execute);
+    query_queue.Reserve(queries);
+    for (std::size_t i = 0; i < static_cast<std::size_t>(queries); ++i) {
+      query_queue.Push(db_helpers::kDefaultPgCC, db_helpers::kSelectRowQuery,
+                       db_helpers::GenerateRandomId());
+    }
+
+    return query_queue.Collect(db_helpers::kDefaultPgCC.execute);
+  }();
+
+  boost::container::small_vector<db_helpers::WorldTableRow, 20> result(queries);
+  for (std::size_t i = 0; i < static_cast<std::size_t>(queries); ++i) {
+    result[i] = db_result[i].AsSingleRow<db_helpers::WorldTableRow>(
+        userver::storages::postgres::kRowTag);
   }
 
-  return userver::formats::json::ValueBuilder{result}.ExtractValue();
+  userver::formats::json::StringBuilder sb{};
+  WriteToStream(result, sb);
+  return sb.GetString();
 }
 
 }  // namespace userver_techempower::multiple_queries

@@ -20,9 +20,7 @@ class HelloWorld < Sinatra::Base
   helpers do
     def bounded_queries
       queries = params[:queries].to_i
-      return QUERIES_MIN if queries < QUERIES_MIN
-      return QUERIES_MAX if queries > QUERIES_MAX
-      queries
+      queries.clamp(QUERIES_MIN, QUERIES_MAX)
     end
 
     def json(data)
@@ -58,8 +56,8 @@ class HelloWorld < Sinatra::Base
   get '/queries' do
     worlds =
       DB.synchronize do
-        Array.new(bounded_queries) do
-          World.with_pk(rand1)
+        ALL_IDS.sample(bounded_queries).map do |id|
+          World.with_pk(id)
         end
       end
 
@@ -80,14 +78,18 @@ class HelloWorld < Sinatra::Base
 
   # Test type 5: Database updates
   get '/updates' do
-    worlds =
-      DB.synchronize do
-        Array.new(bounded_queries) do
-          world = World.with_pk(rand1)
-          world.update(:randomnumber=>rand1)
+    worlds = nil
+    DB.synchronize do
+      worlds =
+        ALL_IDS.sample(bounded_queries).map do |id|
+          world = World.with_pk(id)
+          new_value = rand1
+          new_value = rand1 while new_value == world.randomnumber
+          world.randomnumber = new_value
           world
         end
-      end
+      World.batch_update(worlds)
+    end
 
     json worlds.map!(&:values)
   end

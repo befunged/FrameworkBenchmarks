@@ -1,33 +1,29 @@
-FROM gradle:7.6-jdk17 as gradle
+FROM gradle:8.7.0-jdk21 as gradle
 USER root
 WORKDIR /http4k
-COPY build.gradle build.gradle
-COPY settings.gradle settings.gradle
+COPY build.gradle.kts build.gradle.kts
+COPY settings.gradle.kts settings.gradle.kts
 COPY core core
 COPY core-jdbc core-jdbc
 COPY core-pgclient core-pgclient
 COPY graalvm graalvm
-COPY sunhttp sunhttp
 
 RUN gradle --quiet --no-daemon graalvm:shadowJar
 
-FROM ghcr.io/graalvm/graalvm-ce:ol7-java17-22.3.0 as graalvm
-RUN gu install native-image
-
+FROM ghcr.io/graalvm/native-image-community:21 as graalvm
 COPY --from=gradle /http4k/core/src/main/resources/* /home/app/http4k-graalvm/
 COPY --from=gradle /http4k/graalvm/build/libs/http4k-benchmark.jar /home/app/http4k-graalvm/
 COPY --from=gradle /http4k/graalvm/config/*.json /home/app/http4k-graalvm/
 
-WORKDIR /home/app/http4k-graalvm
-
 RUN native-image \
-    -H:ReflectionConfigurationFiles=reflect-config.json \
-    -H:ResourceConfigurationFiles=resource-config.json \
+    --static --no-fallback \
+    -H:+UnlockExperimentalVMOptions \
+    -H:ReflectionConfigurationFiles=/home/app/http4k-graalvm/reflect-config.json \
+    -H:ResourceConfigurationFiles=/home/app/http4k-graalvm/resource-config.json \
     --initialize-at-build-time="org.slf4j.LoggerFactory,org.slf4j.simple.SimpleLogger,org.slf4j.impl.StaticLoggerBinder" \
-    --no-fallback -cp http4k-benchmark.jar http4k.Http4kGraalVMBenchmarkServerKt
+    -cp /home/app/http4k-graalvm/http4k-benchmark.jar Http4kGraalVMBenchmarkServerKt
 
 FROM frolvlad/alpine-glibc
-RUN apk update && apk add libstdc++
+COPY --from=graalvm /app/http4kgraalvmbenchmarkserverkt /http4kgraalvmbenchmarkserverkt
 EXPOSE 9000
-COPY --from=graalvm /home/app/http4k-graalvm/http4k.http4kgraalvmbenchmarkserverkt /app/http4k-graalvm
-ENTRYPOINT ["/app/http4k-graalvm"]
+ENTRYPOINT ["/http4kgraalvmbenchmarkserverkt"]

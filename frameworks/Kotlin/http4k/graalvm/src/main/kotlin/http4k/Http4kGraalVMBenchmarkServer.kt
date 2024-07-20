@@ -1,10 +1,5 @@
-package http4k
-
-import Http4kBenchmarkServer
-import PostgresDatabase
-import org.http4k.server.SunHttp
-import start
+import org.http4k.server.SunHttpLoom
 
 fun main() {
-    Http4kBenchmarkServer(PostgresDatabase()).start(SunHttp(9000))
+    Http4kBenchmarkServer(PostgresDatabase()).start(SunHttpLoom(9000))
 }
