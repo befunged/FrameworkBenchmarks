@@ -1,15 +1,19 @@
-FROM jruby:9.4-jdk17
+FROM jruby:10.0
 
 RUN apt-get update -y && apt-get install netbase -y
 
 WORKDIR /rack
 
-COPY Gemfile  ./
+COPY Gemfile*  ./
 
-RUN bundle config set without 'development test'
+#RUN echo $(ruby config/auto_tune.rb | grep -Eo '[0-9]+' | head -n 1)
+
+RUN bundle config set with 'puma'
 RUN bundle install --jobs=8
 
 COPY . .
+
+ENV WEB_CONCURRENCY=0
 
 EXPOSE 8080
 

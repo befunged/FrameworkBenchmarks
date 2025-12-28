@@ -12,6 +12,7 @@ import re
 import math
 import csv
 import traceback
+import platform
 from datetime import datetime
 
 # Cross-platform colored text
@@ -52,6 +53,10 @@ class Results:
         except Exception:
             #Could not read local git repository, which is fine.
             self.git = None
+        # OS information - only set once during initialization
+        self.operatingSystem = dict()
+        self.operatingSystem['name'] = platform.system()
+        self.operatingSystem['version'] = platform.release()
         self.startTime = int(round(time.time() * 1000))
         self.completionTime = None
         self.concurrencyLevels = self.config.concurrency_levels
@@ -212,29 +217,34 @@ class Results:
         except (ValueError, IOError):
             pass
 
+    def __make_dir_for_file(self, test_name: str, test_type: str, file_name: str):
+        path = os.path.join(self.directory, test_name, test_type, file_name)
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        except OSError:
+            pass
+        return path
+
+    def get_docker_stats_file(self, test_name, test_type):
+        '''
+        Returns the stats file name for this test_name and
+        Example: fw_root/results/timestamp/test_type/test_name/stats.txt
+        '''
+        return self.__make_dir_for_file(test_name, test_type, "docker_stats.json")
+
     def get_raw_file(self, test_name, test_type):
         '''
         Returns the output file for this test_name and test_type
         Example: fw_root/results/timestamp/test_type/test_name/raw.txt
         '''
-        path = os.path.join(self.directory, test_name, test_type, "raw.txt")
-        try:
-            os.makedirs(os.path.dirname(path))
-        except OSError:
-            pass
-        return path
+        return self.__make_dir_for_file(test_name, test_type, "raw.txt")
 
     def get_stats_file(self, test_name, test_type):
         '''
         Returns the stats file name for this test_name and
         Example: fw_root/results/timestamp/test_type/test_name/stats.txt
         '''
-        path = os.path.join(self.directory, test_name, test_type, "stats.txt")
-        try:
-            os.makedirs(os.path.dirname(path))
-        except OSError:
-            pass
-        return path
+        return self.__make_dir_for_file(test_name, test_type, "stats.txt")
 
     def report_verify_results(self, framework_test, test_type, result):
         '''
@@ -315,6 +325,7 @@ class Results:
         toRet['name'] = self.name
         toRet['environmentDescription'] = self.environmentDescription
         toRet['git'] = self.git
+        toRet['operatingSystem'] = self.operatingSystem
         toRet['startTime'] = self.startTime
         toRet['completionTime'] = self.completionTime
         toRet['concurrencyLevels'] = self.concurrencyLevels
